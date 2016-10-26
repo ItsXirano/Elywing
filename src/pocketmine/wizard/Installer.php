@@ -33,12 +33,12 @@ class Installer{
 	private $lang;
 
 	public function __construct(){
-		echo "§3 >>Elywing installer ! \n";
-		echo "§3 >>Alpha Stage  \n";
-		echo "§3 >>--------------------------------\n";
-   		echo "§3 >>Pulsed By : @SuperMaXAleX_  @ReskillDEV @Misteboss_mcpe @Pab45O \n"; //TODO: Add @xiranoMC If you acccept this update!
-		echo "§3 >>MCPE Version : 0.16.0.5 Alpha   \n";
-		echo "§3 >>Please select a language:\n";//TODO: Add A Auth Plugin In the Server Core ( ITS JUST A NOTE)
+		echo "§3 >>Elywing installer ! \n";// Fully Updated ! ?
+		echo "§3 >>Alpha Stage  \n";//
+		echo "§3 >>--------------------------------\n";//
+   		echo "§3 >>Pulsed By : @SuperMaXAleX_  @ReskillDEV @Misteboss_mcpe @Pab45O \n"; //TODO: Add @xiranoMC If you acccept this update !
+		echo "§3 >>MCPE Version : 0.16.0.5 Alpha   \n";// Yeay
+		echo "§3 >>Please select a language:\n";//TODO: Add A Auth For MCPC // Soon ?
 		foreach(InstallerLang::$languages as $short => $native){
 			echo " $native => $short\n";
 		}
