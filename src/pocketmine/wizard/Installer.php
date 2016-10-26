@@ -127,9 +127,11 @@ LICENSE;
 			}
 		}while($port <= 0 or $port > 65535);
 		$config->set("server-port", $port);
-		/*echo "[*] " . $this->lang->ram_warning . "\n";
+		// RE-ADD This For Devs And Server Host :P
+		echo "[*] WARNING ! RAM IS ONLY FOR EXPERTS IS YOU DONT KNOW WHAT IS THAT SKIP BY PRESSING ENTER !\n";
+		echo "[*] " . $this->lang->ram_warning . "\n";
 		echo "[?] " . $this->lang->server_ram . " (" . self::DEFAULT_MEMORY . "): ";
-		$config->set("memory-limit", ((int) $this->getInput(self::DEFAULT_MEMORY)) . "M");*/
+		$config->set("memory-limit", ((int) $this->getInput(self::DEFAULT_MEMORY)) . "M");
 		echo "[*] " . $this->lang->gamemode_info . "\n";
 		do{
 			echo "[?] " . $this->lang->default_gamemode . ": (" . self::DEFAULT_GAMEMODE . "): ";
@@ -193,13 +195,13 @@ LICENSE;
 			$config->set("enable-rcon", false);
 		}
 
-		/*echo "[*] " . $this->lang->usage_info . "\n";
+		echo "[*] " . $this->lang->usage_info . "\n";
 		echo "[?] " . $this->lang->usage_disable . " (y/N): ";
 		if(strtolower($this->getInput("n")) === "y"){
 			$config->set("send-usage", false);
 		}else{
 			$config->set("send-usage", true);
-		}*/
+		}
 		$config->save();
 
 
