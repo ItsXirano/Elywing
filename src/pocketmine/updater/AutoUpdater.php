@@ -86,7 +86,7 @@ class AutoUpdater{
 		$logger = $this->server->getLogger();
 		$newVersion = new VersionString($this->updateInfo["version"]);
 		$logger->warning("§3----- §bElywing Auto Updater §3-----§r");
-		$logger->warning("§3Your version of PocketMine-MP is out of date. Version §b" . $newVersion->get(false) . " (build #" . $newVersion->getBuild() . ") §3was released on " . date("D M j h:i:s Y", $this->updateInfo["date"]) . "§r");
+		$logger->warning("§3Your version of Elywing is out of date. Version §b" . $newVersion->get(false) . " (build #" . $newVersion->getBuild() . ") §3was released on " . date("D M j h:i:s Y", $this->updateInfo["date"]) . "§r");
 		if($this->updateInfo["details_url"] !== null){
 			$logger->warning("§3Details: §b" . $this->updateInfo["details_url"] . "§r");
 		}
