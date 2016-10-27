@@ -2,19 +2,14 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
+ * @author H4PM
+ * @link No
  * 
  *
 */
@@ -29,11 +24,11 @@ use pocketmine\utils\Config;
 use pocketmine\utils\Utils;
 
 class Installer{
-	const DEFAULT_NAME = "Minecraft: PE Server";
-	const DEFAULT_PORT = 19132;
-	const DEFAULT_MEMORY = 256;
-	const DEFAULT_PLAYERS = 20;
-	const DEFAULT_GAMEMODE = 0;
+	const DEFAULT_NAME = "Elywing: MCPE Server Software"; // Editable but cool :P
+	const DEFAULT_PORT = 19132; // Dont edit
+	const DEFAULT_MEMORY = 256; // Allocated ram by Default for better experience 
+	const DEFAULT_PLAYERS = 10;// 10 Recommanded For Local Host
+	const DEFAULT_GAMEMODE = 0; // User Choice
 
 	private $lang;
 
@@ -51,6 +46,12 @@ class Installer{
    		echo " >>Pulsed By : @SuperMaXAleX_  @ReskillDEV @Misteboss_mcpe @Pab45O \n"; //TODO: Add @xiranoMC If you acccept this update !
 		echo " >>MCPE Version : 0.16.0.5 Alpha Beta: $version   \n";// Yeay
 		echo " >>Please select a language:\n";//TODO: Add A Auth For MCPC // Soon ?
+	        echo " >>--------------------------------\n";
+	        echo "This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Lesser General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.\n";
+	       echo " >>-------------- ENJOY !------------------<<\n";
 		foreach(InstallerLang::$languages as $short => $native){
 	               echo " $native => $short\n";
 		}
@@ -91,12 +92,12 @@ class Installer{
 		echo <<<LICENSE
 
   This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU Lesser General Public License as published by
+  it under the terms of the GNU Lesser General Public License as published by 
   the Free Software Foundation, either version 3 of the License, or
   (at your option) any later version.
 
 LICENSE;
-		echo "\n[?] " . $this->lang->accept_license . " (y/N): ";
+		echo "\n[?] " . $this->lang->accept_license . " (y/N): "; // I have Bumped A License at top :P There is no Licence In Setup Of PM
 		if(strtolower($this->getInput("n")) != "y"){
 			echo "[!] " . $this->lang->you_have_to_accept_the_license . "\n";
 			sleep(5);
@@ -127,9 +128,9 @@ LICENSE;
 			}
 		}while($port <= 0 or $port > 65535);
 		$config->set("server-port", $port);
-		/*echo "[*] " . $this->lang->ram_warning . "\n";
+		echo "[*] WARNING THIS FEATURE IS FOR ADVENCED USER ONLY SKIP IF YOU DONT KNOW BY PRESSING ENTER :D ! \n";
 		echo "[?] " . $this->lang->server_ram . " (" . self::DEFAULT_MEMORY . "): ";
-		$config->set("memory-limit", ((int) $this->getInput(self::DEFAULT_MEMORY)) . "M");*/
+		$config->set("memory-limit", ((int) $this->getInput(self::DEFAULT_MEMORY)) . "M");
 		echo "[*] " . $this->lang->gamemode_info . "\n";
 		do{
 			echo "[?] " . $this->lang->default_gamemode . ": (" . self::DEFAULT_GAMEMODE . "): ";
@@ -192,14 +193,14 @@ LICENSE;
 		}else{
 			$config->set("enable-rcon", false);
 		}
-
-		/*echo "[*] " . $this->lang->usage_info . "\n";
-		echo "[?] " . $this->lang->usage_disable . " (y/N): ";
+		
+                echo "[!!]WARNING THIS FEATURE IS FOR ADVENCED USER ONLY SKIP IF YOU DONT KNOW BY PRESSING ENTER :D ! \n";
+		echo "[?] " . $this->lang->usage_disable . " (Y/N): ";
 		if(strtolower($this->getInput("n")) === "y"){
 			$config->set("send-usage", false);
 		}else{
 			$config->set("send-usage", true);
-		}*/
+		}
 		$config->save();
 
 
