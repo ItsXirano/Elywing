@@ -49,8 +49,19 @@ class Installer{
 	private $defaultLang;
 
 	public function __construct(){
-		echo "[*] Elywing set-up wizard\n";
-		echo "[*] Please select a language:\n";
+		echo "      ########:'##:::::::'##:::'##:'##:::::'##:'####:'##::: ##::'######:::
+      ##.....:: ##:::::::. ##:'##:: ##:'##: ##:. ##:: ###:: ##:'##... ##::
+      ##::::::: ##::::::::. ####::: ##: ##: ##:: ##:: ####: ##: ##:::..:::
+      ######::: ##:::::::::. ##:::: ##: ##: ##:: ##:: ## ## ##: ##::'####:
+      ##...:::: ##:::::::::: ##:::: ##: ##: ##:: ##:: ##. ####: ##::: ##::
+      ##::::::: ##:::::::::: ##:::: ##: ##: ##:: ##:: ##:. ###: ##::: ##::
+      ########: ########:::: ##::::. ###. ###::'####: ##::. ##:. ######:::
+     ........::........:::::..::::::...::...:::....::..::::..:::......::::! \n";// Fully Updated ! ?
+		echo " >>Alpha Stage  \n";//
+		echo " >>--------------------------------\n";//
+   		echo " >>Pulsed By : @SuperMaXAleX_  @ReskillDEV @Misteboss_mcpe @Pab45O \n"; //TODO: Add @xiranoMC If you acccept this update !
+		echo " >>MCPE Version : 0.16.0.5 Alpha  \n";// Crazzy :O
+		echo " >>Please select a language:\n";
 		foreach(InstallerLang::$languages as $short => $native){
 			echo " $native => $short\n";
 		}
@@ -151,9 +162,9 @@ LICENSE;
 		}while(!in_array($type, self::LEVEL_TYPES));
 		$config->set("level-type", $type);
 		
-		/*echo "[*] " . $this->lang->ram_warning . "\n";
-		echo "[?] " . $this->lang->server_ram . " (" . self::DEFAULT_MEMORY . "): ";
-		$config->set("memory-limit", ((int) $this->getInput(self::DEFAULT_MEMORY)) . "M");*/
+		echo "[*] " . $this->lang->ram_warning . "\n";
+		echo "[?] " . $this->lang->server_ram . " (" . self::DEFAULT_MEMORY . "): ";             // NEW TOOLS FOR DEV ! YEAH
+		$config->set("memory-limit", ((int) $this->getInput(self::DEFAULT_MEMORY)) . "M");
 		echo "[*] " . $this->lang->gamemode_info . "\n";
 		do{
 			echo "[?] " . $this->lang->default_gamemode . ": (" . self::DEFAULT_GAMEMODE . "): ";
@@ -224,13 +235,13 @@ LICENSE;
 			$config->set("enable-rcon", false);
 		}
 
-		/*echo "[*] " . $this->lang->usage_info . "\n";
+		echo "[*] " . $this->lang->usage_info . "\n";
 		echo "[?] " . $this->lang->usage_disable . " (y/N): ";
-		if(strtolower($this->getInput("n")) === "y"){
+		if(strtolower($this->getInput("n")) === "y"){                           // ANOTHER TOOL !
 			$config->set("send-usage", false);
 		}else{
 			$config->set("send-usage", true);
-		}*/
+		}
 		$config->save();
 
 
