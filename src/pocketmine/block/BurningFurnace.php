@@ -29,31 +29,17 @@ use pocketmine\nbt\tag\IntTag;
 use pocketmine\nbt\tag\ListTag;
 use pocketmine\nbt\tag\StringTag;
 use pocketmine\Player;
-use pocketmine\tile\Furnace;
+use pocketmine\tile\Furnace as TileFurnace;
 use pocketmine\tile\Tile;
 
 class BurningFurnace extends Solid{
 
 	protected $id = self::BURNING_FURNACE;
 
-	public function __construct($meta = 0){
-		$this->meta = $meta;
-	}
+	public function __construct(){}
 
 	public function getName(){
 		return "Burning Furnace";
-	}
-
-	public function canBeActivated(){
-		return true;
-	}
-
-	public function getHardness(){
-		return 3.5;
-	}
-
-	public function getToolType(){
-		return Tool::TYPE_PICKAXE;
 	}
 
 	public function getLightLevel(){
@@ -101,11 +87,7 @@ class BurningFurnace extends Solid{
 
 	public function onActivate(Item $item, Player $player = null){
 		if($player instanceof Player){
-			$t = $this->getLevel()->getTile($this);
-			$furnace = false;
-			if($t instanceof Furnace){
-				$furnace = $t;
-			}else{
+			if(!(($furnace = $this->getLevel()->getTile($this)) instanceof TileFurnace)){
 				$nbt = new CompoundTag("", [
 					new ListTag("Items", []),
 					new StringTag("id", Tile::FURNACE),
@@ -129,7 +111,7 @@ class BurningFurnace extends Solid{
 		return true;
 	}
 
-	public function getDrops(Item $item){
+	public function getDrops(Item $item) : array{
 		$drops = [];
 		if($item->isPickaxe() >= Tool::TIER_WOODEN){
 			$drops[] = [Item::FURNACE, 0, 1];

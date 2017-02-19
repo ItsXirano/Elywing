@@ -1,23 +1,6 @@
 <?php
 
-/*
- *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- * 
- *
-*/
+
 
 namespace pocketmine\level\generator;
 
@@ -31,17 +14,16 @@ use pocketmine\block\LapisOre;
 use pocketmine\block\RedstoneOre;
 use pocketmine\item\Item;
 use pocketmine\level\ChunkManager;
-use pocketmine\level\format\FullChunk;
-use pocketmine\level\generator\biome\Biome;
-use pocketmine\level\generator\populator\Ore;
-use pocketmine\level\generator\populator\Populator;
+use pocketmine\level\format\Chunk;
+use pocketmine\level\generator\normal\populator\Ore;
+use pocketmine\level\generator\normal\populator\Populator;
 use pocketmine\math\Vector3;
 use pocketmine\utils\Random;
 
 class Flat extends Generator{
 	/** @var ChunkManager */
 	private $level;
-	/** @var FullChunk */
+	/** @var Chunk */
 	private $chunk;
 	/** @var Random */
 	private $random;
@@ -53,13 +35,12 @@ class Flat extends Generator{
 		return $this->options;
 	}
 
-	public function getName(){
+	public function getName() : string{
 		return "flat";
 	}
 
 	public function __construct(array $options = []){
 		$this->preset = "2;7,2x3,2;1;";
-		//$this->preset = "2;7,59x1,3x3,2;1;spawn(radius=10 block=89),decoration(treecount=80 grasscount=45)";
 		$this->options = $options;
 		$this->chunk = null;
 
@@ -67,7 +48,7 @@ class Flat extends Generator{
 			$ores = new Ore();
 			$ores->setOreTypes([
 				new object\OreType(new CoalOre(), 20, 16, 0, 128),
-				new object\OreType(new IronOre(), 20, 8, 0, 64),
+				new object\OreType(New IronOre(), 20, 8, 0, 64),
 				new object\OreType(new RedstoneOre(), 8, 7, 0, 16),
 				new object\OreType(new LapisOre(), 1, 6, 0, 32),
 				new object\OreType(new GoldOre(), 2, 8, 0, 32),
@@ -78,18 +59,15 @@ class Flat extends Generator{
 			$this->populators[] = $ores;
 		}
 
-		/*if(isset($this->options["mineshaft"])){
-			$this->populators[] = new MineshaftPopulator(isset($this->options["mineshaft"]["chance"]) ? floatval($this->options["mineshaft"]["chance"]) : 0.01);
-		}*/
 	}
 
 	protected function parsePreset($preset, $chunkX, $chunkZ){
 		$this->preset = $preset;
 		$preset = explode(";", $preset);
 		$version = (int) $preset[0];
-		$blocks = isset($preset[1]) ? $preset[1] : "";
-		$biome = isset($preset[2]) ? $preset[2] : 1;
-		$options = isset($preset[3]) ? $preset[3] : "";
+		$blocks = $preset[1] ?? "";
+		$biome = $preset[2] ?? 1;
+		$options = $preset[3] ?? "";
 		preg_match_all('#^(([0-9]*x|)([0-9]{1,3})(|:[0-9]{0,2}))$#m', str_replace(",", "\n", $blocks), $matches);
 		$y = 0;
 		$this->structure = [];
@@ -111,15 +89,10 @@ class Flat extends Generator{
 
 		$this->chunk = clone $this->level->getChunk($chunkX, $chunkZ);
 		$this->chunk->setGenerated();
-		$c = Biome::getBiome($biome)->getColor();
-		$R = $c >> 16;
-		$G = ($c >> 8) & 0xff;
-		$B = $c & 0xff;
 
 		for($Z = 0; $Z < 16; ++$Z){
 			for($X = 0; $X < 16; ++$X){
 				$this->chunk->setBiomeId($X, $Z, $biome);
-				$this->chunk->setBiomeColor($X, $Z, $R, $G, $B);
 				for($y = 0; $y < 128; ++$y){
 					$this->chunk->setBlock($X, $y, $Z, ...$this->structure[$y]);
 				}

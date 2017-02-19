@@ -31,16 +31,6 @@ class NetherBrickFence extends Transparent{
 		$this->meta = $meta;
 	}
 
-	public function getBreakTime(Item $item){
-		if($item instanceof Air){
-			//Breaking by hand
-			return 10;
-		}else{
-			// Other breaktimes are equal to woodfences.
-			return parent::getBreakTime($item);
-		}
-	}
-
 	public function getHardness(){
 		return 2;
 	}
@@ -54,11 +44,10 @@ class NetherBrickFence extends Transparent{
 	}
 
 	public function canConnect(Block $block){
-		//TODO: activate comments when the NetherBrickFenceGate class has been created.
-		return ($block instanceof NetherBrickFence /* or $block instanceof NetherBrickFenceGate */) ? true : $block->isSolid() and !$block->isTransparent();
+		return ($block instanceof NetherBrickFence) or ($block->isSolid() and !$block->isTransparent());
 	}
 
-	public function getDrops(Item $item){
+	public function getDrops(Item $item) : array{
 		if($item->isPickaxe() >= Tool::TIER_WOODEN){
 			return [
 				[$this->id, $this->meta, 1],

@@ -32,7 +32,7 @@ class DoubleSlab extends Solid{
 		$this->meta = $meta;
 	}
 
-	public function getHardness(){
+	public function getHardness() {
 		return 2;
 	}
 
@@ -51,11 +51,11 @@ class DoubleSlab extends Solid{
 			6 => "Quartz",
 			7 => "Nether Brick",
 		];
-		return "DoubleTag " . $names[$this->meta & 0x07] . " Slab";
+		return "Double " . $names[$this->meta & 0x07] . " Slab";
 	}
 
-	public function getDrops(Item $item){
-		if($item->isPickaxe() >= Tool::TIER_WOODEN){
+	public function getDrops(Item $item) : array {
+		if($item->isPickaxe() >= 1){
 			return [
 				[Item::SLAB, $this->meta & 0x07, 2],
 			];

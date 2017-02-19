@@ -54,8 +54,7 @@ interface Plugin extends CommandExecutor{
 	public function isDisabled();
 
 	/**
-	 * Gets the plugin's data folder to save files and configuration.
-	 * This directory name has a trailing slash.
+	 * Gets the plugin's data folder to save files and configuration
 	 */
 	public function getDataFolder();
 
@@ -80,7 +79,7 @@ interface Plugin extends CommandExecutor{
 	public function saveResource($filename, $replace = false);
 
 	/**
-	 * Returns all the resources incrusted in the plugin
+	 * Returns all the resources packaged with the plugin
 	 */
 	public function getResources();
 

@@ -22,6 +22,7 @@
 /**
  * Various Utilities used around the code
  */
+ 
 namespace pocketmine\utils;
 
 use pocketmine\entity\Entity;
@@ -116,7 +117,9 @@ class Binary{
 					break;
 				case Entity::DATA_TYPE_POS:
 					//TODO: change this implementation (use objects)
-					$stream->putBlockCoords($d[1][0], $d[1][1], $d[1][2]); //x, y, z
+					$stream->putVarInt($d[1][0]); //x
+					$stream->putVarInt($d[1][1]); //y (SIGNED)
+					$stream->putVarInt($d[1][2]); //z
 					break;
 				case Entity::DATA_TYPE_LONG:
 					$stream->putVarInt($d[1]); //TODO: varint64 support
@@ -165,14 +168,17 @@ class Binary{
 					break;
 				case Entity::DATA_TYPE_SLOT:
 					//TODO: use objects directly
+					$value = [];
 					$item = $stream->getSlot();
 					$value[0] = $item->getId();
 					$value[1] = $item->getCount();
 					$value[2] = $item->getDamage();
 					break;
 				case Entity::DATA_TYPE_POS:
-					$value = [0, 0, 0];
-					$stream->getBlockCoords($value[0], $value[1], $value[2]);
+					$value = [];
+					$value[0] = $stream->getVarInt(); //x
+					$value[1] = $stream->getVarInt(); //y (SIGNED)
+					$value[2] = $stream->getVarInt(); //z
 					break;
 				case Entity::DATA_TYPE_LONG:
 					$value = $stream->getVarInt(); //TODO: varint64 proper support
@@ -354,18 +360,28 @@ class Binary{
 		return pack("V", $value);
 	}
 
-	public static function readFloat($str){
+	public static function readFloat($str, int $accuracy = -1){
 		self::checkLength($str, 4);
-		return ENDIANNESS === self::BIG_ENDIAN ? unpack("f", $str)[1] : unpack("f", strrev($str))[1];
+		$value = ENDIANNESS === self::BIG_ENDIAN ? unpack("f", $str)[1] : unpack("f", strrev($str))[1];
+		if($accuracy > -1){
+			return round($value, $accuracy);
+		}else{
+			return $value;
+		}
 	}
 
 	public static function writeFloat($value){
 		return ENDIANNESS === self::BIG_ENDIAN ? pack("f", $value) : strrev(pack("f", $value));
 	}
 
-	public static function readLFloat($str){
+	public static function readLFloat($str, int $accuracy = -1){
 		self::checkLength($str, 4);
-		return ENDIANNESS === self::BIG_ENDIAN ? unpack("f", strrev($str))[1] : unpack("f", $str)[1];
+		$value = ENDIANNESS === self::BIG_ENDIAN ? unpack("f", strrev($str))[1] : unpack("f", $str)[1];
+		if($accuracy > -1){
+			return round($value, $accuracy);
+		}else{
+			return $value;
+		}
 	}
 
 	public static function writeLFloat($value){
@@ -468,23 +484,19 @@ class Binary{
 		return self::writeUnsignedVarInt(($v << 1) ^ ($v >> (PHP_INT_SIZE === 8 ? 63 : 31)));
 	}
 
-	public static function writeUnsignedVarInt($v){
+	public static function writeUnsignedVarInt($value){
 		$buf = "";
-		$loops = 0;
-		do{
-			if($loops > 9){
-				throw new \InvalidArgumentException("Varint cannot be longer than 10 bytes!"); //for safety reasons
+		for($i = 0; $i < 10; ++$i){
+			if(($value >> 7) !== 0){
+				$buf .= chr($value | 0x80); //Let chr() take the last byte of this, it's faster than adding another & 0x7f.
+			}else{
+				$buf .= chr($value & 0x7f);
+				return $buf;
 			}
-			$w = $v & 0x7f;
-			if(($v >> 7) !== 0){
-				$w = $v | 0x80;
-			}
-			$buf .= self::writeByte($w);
-			$v = (($v >> 7) & (PHP_INT_MAX >> 6)); //PHP really needs a logical right-shift operator
-			++$loops;
-		}while($v);
 
-		return $buf;
+			$value = (($value >> 7) & (PHP_INT_MAX >> 6)); //PHP really needs a logical right-shift operator
+		}
+
+		throw new \InvalidArgumentException("Value too large to be encoded as a varint");
 	}
-
 }

@@ -26,13 +26,14 @@ use pocketmine\command\CommandSender;
 use pocketmine\event\TranslationContainer;
 use pocketmine\Player;
 
+
 class BanIpCommand extends VanillaCommand{
 
 	public function __construct($name){
 		parent::__construct(
 			$name,
-			"%pocketmine.command.ban.ip.description",
-			"%commands.banip.usage"
+			"%pocketmine.command.banip.description",
+			"%pocketmine.command.banip.usage"
 		);
 		$this->setPermission("pocketmine.command.ban.ip");
 	}

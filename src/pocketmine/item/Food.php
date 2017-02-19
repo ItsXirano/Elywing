@@ -22,7 +22,6 @@
 namespace pocketmine\item;
 
 use pocketmine\entity\Entity;
-use pocketmine\entity\Human;
 use pocketmine\event\entity\EntityEatItemEvent;
 use pocketmine\network\protocol\EntityEventPacket;
 use pocketmine\Player;
@@ -34,7 +33,7 @@ abstract class Food extends Item implements FoodSource{
 	}
 
 	public function canBeConsumedBy(Entity $entity) : bool{
-		return $entity instanceof Human and $entity->getFood() < $entity->getMaxFood();
+		return $entity instanceof Player and ($entity->getFood() < $entity->getMaxFood()) and $this->canBeConsumed();
 	}
 
 	public function getResidue(){
@@ -58,16 +57,17 @@ abstract class Food extends Item implements FoodSource{
 		if($human instanceof Player){
 			$human->dataPacket($pk);
 		}
-		Server::broadcastPacket($human->getViewers(), $pk);
+		$human->getServer()->broadcastPacket($human->getViewers(), $pk);
 
-		$ev = new EntityEatItemEvent($human, $this);
-
-		$human->addSaturation($ev->getSaturationRestore());
-		$human->addFood($ev->getFoodRestore());
-		foreach($ev->getAdditionalEffects() as $effect){
-			$human->addEffect($effect);
+		Server::getInstance()->getPluginManager()->callEvent($ev = new EntityEatItemEvent($human, $this));
+		if(!$ev->isCancelled()){
+			$human->addSaturation($ev->getSaturationRestore());
+			$human->addFood($ev->getFoodRestore());
+			foreach($ev->getAdditionalEffects() as $effect){
+				$human->addEffect($effect);
+			}
+			$human->getInventory()->setItemInHand($ev->getResidue());
 		}
-
-		$human->getInventory()->setItemInHand($ev->getResidue());
+		
 	}
 }

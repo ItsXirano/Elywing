@@ -21,14 +21,15 @@
 
 namespace pocketmine\entity;
 
+use pocketmine\item\enchantment\Enchantment;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\item\Item as ItemItem;
 use pocketmine\math\Vector3;
+use pocketmine\network\Network;
 use pocketmine\network\protocol\AddEntityPacket;
 use pocketmine\network\protocol\EntityEventPacket;
 use pocketmine\Player;
-use pocketmine\Server;
 
 class Squid extends WaterAnimal implements Ageable{
 	const NETWORK_ID = 17;
@@ -36,6 +37,8 @@ class Squid extends WaterAnimal implements Ageable{
 	public $width = 0.95;
 	public $length = 0.95;
 	public $height = 0.95;
+
+	public $dropExp = [1, 3];
 
 	/** @var Vector3 */
 	public $swimDirection = null;
@@ -66,7 +69,7 @@ class Squid extends WaterAnimal implements Ageable{
 			$pk = new EntityEventPacket();
 			$pk->eid = $this->getId();
 			$pk->event = EntityEventPacket::SQUID_INK_CLOUD;
-			Server::broadcastPacket($this->hasSpawned, $pk);
+			$this->server->broadcastPacket($this->hasSpawned, $pk);
 		}
 	}
 
@@ -164,8 +167,13 @@ class Squid extends WaterAnimal implements Ageable{
 	}
 
 	public function getDrops(){
+		$lootingL = 0;
+		$cause = $this->lastDamageCause;
+		if($cause instanceof EntityDamageByEntityEvent and $cause->getDamager() instanceof Player){
+			$lootingL = $cause->getDamager()->getItemInHand()->getEnchantmentLevel(Enchantment::TYPE_WEAPON_LOOTING);
+		}
 		return [
-			ItemItem::get(ItemItem::DYE, 0, mt_rand(1, 3))
+			ItemItem::get(ItemItem::DYE, 0, mt_rand(1, 3 + $lootingL))
 		];
 	}
 }

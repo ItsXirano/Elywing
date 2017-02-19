@@ -62,9 +62,9 @@ class PlayerInventory extends BaseInventory{
 						/* If TrueSlot is not set, leave the slot index as its default which was filled in above
 						 * This only overwrites slot indexes for valid links */
 					}elseif($item["Slot"] >= 100 and $item["Slot"] < 104){ //Armor
-						$this->setItem($this->getSize() + $item["Slot"] - 100, NBT::getItemHelper($item), false);
+						$this->setItem($this->getSize() + $item["Slot"] - 100, Item::nbtDeserialize($item), false);
 					}else{
-						$this->setItem($item["Slot"] - $this->getHotbarSize(), NBT::getItemHelper($item), false);
+						$this->setItem($item["Slot"] - $this->getHotbarSize(), Item::nbtDeserialize($item), false);
 					}
 				}
 			}else{
@@ -234,7 +234,7 @@ class PlayerInventory extends BaseInventory{
 				$this->sendSlot($this->getHeldItemSlot(), $target);
 			}
 		}else{
-			Server::broadcastPacket($target, $pk);
+			$this->getHolder()->getLevel()->getServer()->broadcastPacket($target, $pk);
 			foreach($target as $player){
 				if($player === $this->getHolder()){
 					$this->sendSlot($this->getHeldItemSlot(), $player);
@@ -276,6 +276,14 @@ class PlayerInventory extends BaseInventory{
 	public function setArmorItem($index, Item $item){
 		return $this->setItem($this->getSize() + $index, $item);
 	}
+	
+	public function damageArmor($index, $cost){
+ 		$this->slots[$this->getSize() + $index]->useOn($this->slots[$this->getSize() + $index], $cost);
+ 	    if($this->slots[$this->getSize() + $index]->getDamage() >= $this->slots[$this->getSize() + $index]->getMaxDurability()){
+ 		$this->setItem($this->getSize() + $index, Item::get(Item::AIR, 0, 0));
+		}
+ 		$this->sendArmorContents($this->getViewers());
+ 	}
 
 	public function getHelmet(){
 		return $this->getItem($this->getSize());
@@ -342,7 +350,7 @@ class PlayerInventory extends BaseInventory{
 
 	public function clear($index, $send = true){
 		if(isset($this->slots[$index])){
-			$item = Item::get(Item::AIR, null, 0);
+			$item = Item::get(Item::AIR, 0, 0);
 			$old = $this->slots[$index];
 			if($index >= $this->getSize() and $index < $this->size){ //Armor change
 				Server::getInstance()->getPluginManager()->callEvent($ev = new EntityArmorChangeEvent($this->getHolder(), $old, $item, $index));
@@ -435,7 +443,7 @@ class PlayerInventory extends BaseInventory{
 	public function setArmorContents(array $items){
 		for($i = 0; $i < 4; ++$i){
 			if(!isset($items[$i]) or !($items[$i] instanceof Item)){
-				$items[$i] = Item::get(Item::AIR, null, 0);
+				$items[$i] = Item::get(Item::AIR, 0, 0);
 			}
 
 			if($items[$i]->getId() === Item::AIR){
@@ -512,17 +520,6 @@ class PlayerInventory extends BaseInventory{
 			$pk->windowid = $id;
 			$player->dataPacket(clone $pk);
 		}
-	}
-
-	public function sendCreativeContents(){
-		$pk = new ContainerSetContentPacket();
-		$pk->windowid = ContainerSetContentPacket::SPECIAL_CREATIVE;
-		if($this->getHolder()->getGamemode() === Player::CREATIVE){
-			foreach(Item::getCreativeItems() as $i => $item){
-				$pk->slots[$i] = clone $item;
-			}
-		}
-		$this->getHolder()->dataPacket($pk);
 	}
 
 	/**

@@ -49,7 +49,7 @@ class ScriptPluginLoader implements PluginLoader{
 	 *
 	 * @return Plugin
 	 *
-	 * @throws \Exception
+	 * @throws \Throwable
 	 */
 	public function loadPlugin($file){
 		if(($description = $this->getPluginDescription($file)) instanceof PluginDescription){
@@ -100,12 +100,12 @@ class ScriptPluginLoader implements PluginLoader{
 
 				if($key === "notscript"){
 					return null;
-				}
+ 				}
 
 				$data[$key] = $content;
 			}
 
-			if($insideHeader and strpos($line, "**/") !== false){
+			if($insideHeader and strpos($line, "*/") !== false){
 				break;
 			}
 		}

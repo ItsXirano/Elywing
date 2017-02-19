@@ -21,7 +21,9 @@
 
 namespace pocketmine\block;
 
-class Tripwire extends Solid{
+use pocketmine\item\Tool;
+
+class Tripwire extends Transparent{
 
 	protected $id = self::TRIPWIRE;
 
@@ -32,4 +34,17 @@ class Tripwire extends Solid{
 	public function getName(){
 		return "Tripwire";
 	}
+
+	public function getToolType(){
+		return Tool::TYPE_SHEARS;
+	}
+
+	public function getHardness(){
+		return 0;
+	}
+
+	public function getResistance(){
+		return 0;
+	}
+
 }

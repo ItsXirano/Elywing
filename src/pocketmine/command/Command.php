@@ -107,16 +107,17 @@ abstract class Command{
 	 * @return \stdClass|null
 	 */
 	public function generateCustomCommandData(Player $player){
-		if(!$this->testPermission($player)){
+		//TODO: fix command permission filtering on join
+		/*if(!$this->testPermission($player)){
 			return null;
-		}
+		}*/
 		$customData = clone $this->commandData;
 		$customData->aliases = $this->getAliases();
-		foreach($customData->overloads as &$overload){
+		/*foreach($customData->overloads as &$overload){
 			if(($p = @$overload->pocketminePermission) !== null and !$player->hasPermission($p)){
 				unset($overload);
 			}
-		}
+		}*/
 		return $customData;
 	}
 
@@ -136,7 +137,7 @@ abstract class Command{
 	/**
 	 * @return string
 	 */
-	public function getName(){
+	public function getName() : string{
 		return $this->name;
 	}
 
@@ -340,7 +341,7 @@ abstract class Command{
 	public static function broadcastCommandMessage(CommandSender $source, $message, $sendToSource = true){
 		if($message instanceof TextContainer){
 			$m = clone $message;
-			$result = "[" . $source->getName() . ": " . ($source->getServer()->getLanguage()->get($m->getText()) !== $m->getText() ? "%" : "") . $m->getText() . "]";
+			$result = "[".$source->getName().": ".($source->getServer()->getLanguage()->get($m->getText()) !== $m->getText() ? "%" : "") . $m->getText() ."]";
 
 			$users = $source->getServer()->getPluginManager()->getPermissionSubscriptions(Server::BROADCAST_CHANNEL_ADMINISTRATIVE);
 			$colored = TextFormat::GRAY . TextFormat::ITALIC . $result;

@@ -22,7 +22,7 @@
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
-use pocketmine\level\generator\object\Tree;
+use pocketmine\level\generator\normal\object\Tree;
 use pocketmine\level\Level;
 use pocketmine\Player;
 use pocketmine\utils\Random;
@@ -41,7 +41,7 @@ class Sapling extends Flowable{
 		$this->meta = $meta;
 	}
 
-	public function canBeActivated(){
+	public function canBeActivated() : bool {
 		return true;
 	}
 
@@ -62,7 +62,7 @@ class Sapling extends Flowable{
 
 	public function place(Item $item, Block $block, Block $target, $face, $fx, $fy, $fz, Player $player = null){
 		$down = $this->getSide(0);
-		if($down->getId() === self::GRASS or $down->getId() === self::DIRT or $down->getId() === self::FARMLAND){
+		if($down->getId() === self::GRASS or $down->getId() === self::DIRT or $down->getId() === self::FARMLAND or $down->getId() === self::PODZOL){
 			$this->getLevel()->setBlock($block, $this, true, true);
 
 			return true;
@@ -110,7 +110,7 @@ class Sapling extends Flowable{
 		return false;
 	}
 
-	public function getDrops(Item $item){
+	public function getDrops(Item $item) : array {
 		return [
 			[$this->id, $this->meta & 0x07, 1],
 		];

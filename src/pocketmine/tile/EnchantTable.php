@@ -21,15 +21,20 @@
 
 namespace pocketmine\tile;
 
+
+use pocketmine\level\format\Chunk;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\nbt\tag\IntTag;
 use pocketmine\nbt\tag\StringTag;
 
 class EnchantTable extends Spawnable implements Nameable{
 
+	public function __construct(Chunk $chunk, CompoundTag $nbt){
+		parent::__construct($chunk, $nbt);
+	}
 
-	public function getName(){
-		return isset($this->namedtag->CustomName) ? $this->namedtag->CustomName->getValue() : "Enchanting Table";
+	public function getName() : string{
+		return $this->hasName() ? $this->namedtag->CustomName->getValue() : "Enchanting Table";
 	}
 
 	public function hasName(){
@@ -46,7 +51,7 @@ class EnchantTable extends Spawnable implements Nameable{
 	}
 
 	public function getSpawnCompound(){
-		$c = new CompoundTag("", [
+		$nbt = new CompoundTag("", [
 			new StringTag("id", Tile::ENCHANT_TABLE),
 			new IntTag("x", (int) $this->x),
 			new IntTag("y", (int) $this->y),
@@ -54,9 +59,9 @@ class EnchantTable extends Spawnable implements Nameable{
 		]);
 
 		if($this->hasName()){
-			$c->CustomName = $this->namedtag->CustomName;
+			$nbt->CustomName = $this->namedtag->CustomName;
 		}
 
-		return $c;
+		return $nbt;
 	}
 }

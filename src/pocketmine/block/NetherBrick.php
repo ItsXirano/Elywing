@@ -28,9 +28,7 @@ class NetherBrick extends Solid{
 
 	protected $id = self::NETHER_BRICKS;
 
-	public function __construct(){
-
-	}
+	public function __construct(){}
 
 	public function getToolType(){
 		return Tool::TYPE_PICKAXE;
@@ -40,12 +38,12 @@ class NetherBrick extends Solid{
 		return "Nether Bricks";
 	}
 
-	public function getHardness(){
+	public function getHardness() {
 		return 2;
 	}
 
-	public function getDrops(Item $item){
-		if($item->isPickaxe() >= Tool::TIER_WOODEN){
+	public function getDrops(Item $item) : array {
+		if($item->isPickaxe() >= 1){
 			return [
 				[Item::NETHER_BRICKS, 0, 1],
 			];

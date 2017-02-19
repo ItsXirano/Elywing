@@ -33,6 +33,7 @@ use pocketmine\event\TimingsHandler;
 use pocketmine\permission\Permissible;
 use pocketmine\permission\Permission;
 use pocketmine\Server;
+use pocketmine\utils\MainLogger;
 use pocketmine\utils\PluginException;
 
 /**
@@ -218,8 +219,13 @@ class PluginManager{
 								$version = array_map("intval", explode(".", $version));
 								$apiVersion = array_map("intval", explode(".", $this->server->getApiVersion()));
 								//Completely different API version
-								if($version[0] !== $apiVersion[0]){
+								if($version[0] > $apiVersion[0]){
 									continue;
+								}
+								//If the plugin uses new API
+								if($version[0] < $apiVersion[0]){
+									$compatible = true;
+									break;
 								}
 								//If the plugin requires new API features, being backwards compatible
 								if($version[1] > $apiVersion[1]){
@@ -230,8 +236,40 @@ class PluginManager{
 								break;
 							}
 
+							$compatiblegeniapi = false;
+							foreach($description->getCompatibleGeniApis() as $version){
+								//Format: majorVersion.minorVersion.patch
+								$version = array_map("intval", explode(".", $version));
+								$apiVersion = array_map("intval", explode(".", $this->server->getGeniApiVersion()));
+								//Completely different API version
+								if($version[0] > $apiVersion[0]){
+									continue;
+								}
+								//If the plugin uses new API
+								if($version[0] < $apiVersion[0]){
+									$compatiblegeniapi = true;
+									break;
+								}
+								//If the plugin requires new API features, being backwards compatible
+								if($version[1] > $apiVersion[1]){
+									continue;
+								}
+
+								if($version[1] == $apiVersion[1] and $version[2] > $apiVersion[2]){
+									continue;
+								}
+
+								$compatiblegeniapi = true;
+								break;
+							}
+
 							if($compatible === false){
 								$this->server->getLogger()->error($this->server->getLanguage()->translateString("pocketmine.plugin.loadError", [$name, "%pocketmine.plugin.incompatibleAPI"]));
+								continue;
+							}
+
+							if($compatiblegeniapi === false){
+								$this->server->getLogger()->error("Could not load plugin '{$description->getName()}': Incompatible GeniAPI version");
 								continue;
 							}
 
@@ -409,7 +447,7 @@ class PluginManager{
 			$this->defaultPerms[$permission->getName()] = $permission;
 			$this->dirtyPermissibles(false);
 		}
-		Timings::$permissionDefaultTimer->startTiming();
+		Timings::$permissionDefaultTimer->stopTiming();
 	}
 
 	/**
@@ -452,7 +490,7 @@ class PluginManager{
 	 */
 	public function getPermissionSubscriptions($permission){
 		if(isset($this->permSubs[$permission])){
-			return $this->permSubs[$permission];
+			return $this->permSubs[$permission];//Return and ignore the further code
 			$subs = [];
 			foreach($this->permSubs[$permission] as $k => $perm){
 				/** @var \WeakRef $perm */
@@ -503,7 +541,7 @@ class PluginManager{
 		$subs = [];
 
 		if($op === true){
-			return $this->defSubsOp;
+			return $this->defSubsOp;//Return and ignore further code
 			foreach($this->defSubsOp as $k => $perm){
 				/** @var \WeakRef $perm */
 				if($perm->acquire()){
@@ -514,7 +552,7 @@ class PluginManager{
 				}
 			}
 		}else{
-			return $this->defSubs;
+			return $this->defSubs;//Return and ignore further code
 			foreach($this->defSubs as $k => $perm){
 				/** @var \WeakRef $perm */
 				if($perm->acquire()){
@@ -759,7 +797,7 @@ class PluginManager{
 	}
 
 	/**
-	 * @param string $event
+	 * @param $event
 	 *
 	 * @return HandlerList
 	 */

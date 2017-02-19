@@ -36,6 +36,7 @@ use pocketmine\network\protocol\AvailableCommandsPacket;
 use pocketmine\network\protocol\BatchPacket;
 use pocketmine\network\protocol\BlockEntityDataPacket;
 use pocketmine\network\protocol\BlockEventPacket;
+use pocketmine\network\protocol\BossEventPacket;
 use pocketmine\network\protocol\ChangeDimensionPacket;
 use pocketmine\network\protocol\ChunkRadiusUpdatedPacket;
 use pocketmine\network\protocol\CommandStepPacket;
@@ -53,8 +54,8 @@ use pocketmine\network\protocol\EntityEventPacket;
 use pocketmine\network\protocol\ExplodePacket;
 use pocketmine\network\protocol\FullChunkDataPacket;
 use pocketmine\network\protocol\HurtArmorPacket;
-use pocketmine\network\protocol\Info as ProtocolInfo;
 use pocketmine\network\protocol\Info;
+use pocketmine\network\protocol\Info as ProtocolInfo;
 use pocketmine\network\protocol\InteractPacket;
 use pocketmine\network\protocol\InventoryActionPacket;
 use pocketmine\network\protocol\ItemFrameDropItemPacket;
@@ -65,13 +66,14 @@ use pocketmine\network\protocol\MobArmorEquipmentPacket;
 use pocketmine\network\protocol\MobEquipmentPacket;
 use pocketmine\network\protocol\MoveEntityPacket;
 use pocketmine\network\protocol\MovePlayerPacket;
+use pocketmine\network\protocol\PlayStatusPacket;
 use pocketmine\network\protocol\PlayerActionPacket;
+use pocketmine\network\protocol\PlayerFallPacket;
 use pocketmine\network\protocol\PlayerInputPacket;
 use pocketmine\network\protocol\PlayerListPacket;
-use pocketmine\network\protocol\PlayStatusPacket;
 use pocketmine\network\protocol\RemoveBlockPacket;
 use pocketmine\network\protocol\RemoveEntityPacket;
-use pocketmine\network\protocol\ReplaceSelectedItemPacket;
+use pocketmine\network\protocol\ReplaceItemInSlotPacket;
 use pocketmine\network\protocol\RequestChunkRadiusPacket;
 use pocketmine\network\protocol\ResourcePackClientResponsePacket;
 use pocketmine\network\protocol\ResourcePacksInfoPacket;
@@ -85,18 +87,20 @@ use pocketmine\network\protocol\SetHealthPacket;
 use pocketmine\network\protocol\SetPlayerGameTypePacket;
 use pocketmine\network\protocol\SetSpawnPositionPacket;
 use pocketmine\network\protocol\SetTimePacket;
+use pocketmine\network\protocol\ShowCreditsPacket;
 use pocketmine\network\protocol\SpawnExperienceOrbPacket;
 use pocketmine\network\protocol\StartGamePacket;
 use pocketmine\network\protocol\TakeItemEntityPacket;
 use pocketmine\network\protocol\TextPacket;
+use pocketmine\network\protocol\TransferPacket;
 use pocketmine\network\protocol\UpdateBlockPacket;
 use pocketmine\network\protocol\UseItemPacket;
 use pocketmine\Player;
 use pocketmine\Server;
-use pocketmine\utils\Binary;
 use pocketmine\utils\BinaryStream;
+use pocketmine\utils\MainLogger;
 
-class Network{
+class Network {
 
 	public static $BATCH_THRESHOLD = 512;
 
@@ -117,28 +121,27 @@ class Network{
 
 	private $name;
 
-	public function __construct(Server $server){
+	public function __construct(Server $server) {
 
 		$this->registerPackets();
 
 		$this->server = $server;
-
 	}
 
-	public function addStatistics($upload, $download){
+	public function addStatistics($upload, $download) {
 		$this->upload += $upload;
 		$this->download += $download;
 	}
 
-	public function getUpload(){
+	public function getUpload() {
 		return $this->upload;
 	}
 
-	public function getDownload(){
+	public function getDownload() {
 		return $this->download;
 	}
 
-	public function resetStatistics(){
+	public function resetStatistics() {
 		$this->upload = 0;
 		$this->download = 0;
 	}
@@ -146,18 +149,20 @@ class Network{
 	/**
 	 * @return SourceInterface[]
 	 */
-	public function getInterfaces(){
+	public function getInterfaces() {
 		return $this->interfaces;
 	}
 
-	public function processInterfaces(){
-		foreach($this->interfaces as $interface){
-			try{
+	public function processInterfaces() {
+		foreach ($this->interfaces as $interface) {
+			try {
 				$interface->process();
-			}catch(\Throwable $e){
+			} catch (\Throwable $e) {
 				$logger = $this->server->getLogger();
-				if(\pocketmine\DEBUG > 1){
-					$logger->logException($e);
+				if (\pocketmine\DEBUG > 1) {
+					if ($logger instanceof MainLogger) {
+						$logger->logException($e);
+					}
 				}
 
 				$interface->emergencyShutdown();
@@ -170,9 +175,9 @@ class Network{
 	/**
 	 * @param SourceInterface $interface
 	 */
-	public function registerInterface(SourceInterface $interface){
+	public function registerInterface(SourceInterface $interface) {
 		$this->interfaces[$hash = spl_object_hash($interface)] = $interface;
-		if($interface instanceof AdvancedSourceInterface){
+		if ($interface instanceof AdvancedSourceInterface) {
 			$this->advancedInterfaces[$hash] = $interface;
 			$interface->setNetwork($this);
 		}
@@ -182,7 +187,7 @@ class Network{
 	/**
 	 * @param SourceInterface $interface
 	 */
-	public function unregisterInterface(SourceInterface $interface){
+	public function unregisterInterface(SourceInterface $interface) {
 		unset($this->interfaces[$hash = spl_object_hash($interface)],
 			$this->advancedInterfaces[$hash]);
 	}
@@ -192,19 +197,19 @@ class Network{
 	 *
 	 * @param string $name
 	 */
-	public function setName($name){
-		$this->name = (string) $name;
-		foreach($this->interfaces as $interface){
+	public function setName($name) {
+		$this->name = (string)$name;
+		foreach ($this->interfaces as $interface) {
 			$interface->setName($this->name);
 		}
 	}
 
-	public function getName(){
+	public function getName() {
 		return $this->name;
 	}
 
-	public function updateName(){
-		foreach($this->interfaces as $interface){
+	public function updateName() {
+		foreach ($this->interfaces as $interface) {
 			$interface->setName($this->name);
 		}
 	}
@@ -213,11 +218,11 @@ class Network{
 	 * @param int        $id 0-255
 	 * @param DataPacket $class
 	 */
-	public function registerPacket($id, $class){
+	public function registerPacket($id, $class) {
 		$this->packetPool[$id] = new $class;
 	}
 
-	public function getServer(){
+	public function getServer() {
 		return $this->server;
 	}
 
@@ -239,7 +244,6 @@ class Network{
 
 			while($stream->offset < $len){
 				$buf = $stream->getString();
-
 				if(($pk = $this->getPacket(ord($buf{0}))) !== null){
 					if($pk::NETWORK_ID === Info::BATCH_PACKET){
 						throw new \InvalidStateException("Invalid BatchPacket inside BatchPacket");
@@ -255,8 +259,10 @@ class Network{
 		}catch(\Throwable $e){
 			if(\pocketmine\DEBUG > 1){
 				$logger = $this->server->getLogger();
-				$logger->debug("BatchPacket " . " 0x" . bin2hex($packet->payload));
-				$logger->logException($e);
+				if($logger instanceof MainLogger){
+					$logger->debug("BatchPacket " . " 0x" . bin2hex($packet->payload));
+					$logger->logException($e);
+				}
 			}
 		}
 	}
@@ -266,10 +272,10 @@ class Network{
 	 *
 	 * @return DataPacket
 	 */
-	public function getPacket($id){
+	public function getPacket($id) {
 		/** @var DataPacket $class */
 		$class = $this->packetPool[$id];
-		if($class !== null){
+		if ($class !== null) {
 			return clone $class;
 		}
 		return null;
@@ -281,8 +287,8 @@ class Network{
 	 * @param int    $port
 	 * @param string $payload
 	 */
-	public function sendPacket($address, $port, $payload){
-		foreach($this->advancedInterfaces as $interface){
+	public function sendPacket($address, $port, $payload) {
+		foreach ($this->advancedInterfaces as $interface) {
 			$interface->sendRawPacket($address, $port, $payload);
 		}
 	}
@@ -293,13 +299,24 @@ class Network{
 	 * @param string $address
 	 * @param int    $timeout
 	 */
-	public function blockAddress($address, $timeout = 300){
-		foreach($this->advancedInterfaces as $interface){
+	public function blockAddress($address, $timeout = 300) {
+		foreach ($this->advancedInterfaces as $interface) {
 			$interface->blockAddress($address, $timeout);
 		}
 	}
 
-	private function registerPackets(){
+	/**
+	 * Unblocks an IP address from the main interface.
+	 *
+	 * @param string $address
+	 */
+	public function unblockAddress($address) {
+		foreach ($this->advancedInterfaces as $interface) {
+			$interface->unblockAddress($address);
+		}
+	}
+
+	private function registerPackets() {
 		$this->packetPool = new \SplFixedArray(256);
 
 		$this->registerPacket(ProtocolInfo::ADD_ENTITY_PACKET, AddEntityPacket::class);
@@ -314,6 +331,7 @@ class Network{
 		$this->registerPacket(ProtocolInfo::BATCH_PACKET, BatchPacket::class);
 		$this->registerPacket(ProtocolInfo::BLOCK_ENTITY_DATA_PACKET, BlockEntityDataPacket::class);
 		$this->registerPacket(ProtocolInfo::BLOCK_EVENT_PACKET, BlockEventPacket::class);
+		$this->registerPacket(ProtocolInfo::BOSS_EVENT_PACKET, BossEventPacket::class);
 		$this->registerPacket(ProtocolInfo::CHANGE_DIMENSION_PACKET, ChangeDimensionPacket::class);
 		$this->registerPacket(ProtocolInfo::CHUNK_RADIUS_UPDATED_PACKET, ChunkRadiusUpdatedPacket::class);
 		$this->registerPacket(ProtocolInfo::COMMAND_STEP_PACKET, CommandStepPacket::class);
@@ -341,12 +359,13 @@ class Network{
 		$this->registerPacket(ProtocolInfo::MOVE_ENTITY_PACKET, MoveEntityPacket::class);
 		$this->registerPacket(ProtocolInfo::MOVE_PLAYER_PACKET, MovePlayerPacket::class);
 		$this->registerPacket(ProtocolInfo::PLAYER_ACTION_PACKET, PlayerActionPacket::class);
+		$this->registerPacket(ProtocolInfo::PLAYER_FALL_PACKET, PlayerFallPacket::class);
 		$this->registerPacket(ProtocolInfo::PLAYER_INPUT_PACKET, PlayerInputPacket::class);
 		$this->registerPacket(ProtocolInfo::PLAYER_LIST_PACKET, PlayerListPacket::class);
 		$this->registerPacket(ProtocolInfo::PLAY_STATUS_PACKET, PlayStatusPacket::class);
 		$this->registerPacket(ProtocolInfo::REMOVE_BLOCK_PACKET, RemoveBlockPacket::class);
 		$this->registerPacket(ProtocolInfo::REMOVE_ENTITY_PACKET, RemoveEntityPacket::class);
-		$this->registerPacket(ProtocolInfo::REPLACE_SELECTED_ITEM_PACKET, ReplaceSelectedItemPacket::class);
+		$this->registerPacket(ProtocolInfo::REPLACE_ITEM_IN_SLOT_PACKET, ReplaceItemInSlotPacket::class);
 		$this->registerPacket(ProtocolInfo::REQUEST_CHUNK_RADIUS_PACKET, RequestChunkRadiusPacket::class);
 		$this->registerPacket(ProtocolInfo::RESOURCE_PACK_CLIENT_RESPONSE_PACKET, ResourcePackClientResponsePacket::class);
 		$this->registerPacket(ProtocolInfo::RESOURCE_PACKS_INFO_PACKET, ResourcePacksInfoPacket::class);
@@ -360,10 +379,12 @@ class Network{
 		$this->registerPacket(ProtocolInfo::SET_PLAYER_GAME_TYPE_PACKET, SetPlayerGameTypePacket::class);
 		$this->registerPacket(ProtocolInfo::SET_SPAWN_POSITION_PACKET, SetSpawnPositionPacket::class);
 		$this->registerPacket(ProtocolInfo::SET_TIME_PACKET, SetTimePacket::class);
+		$this->registerPacket(ProtocolInfo::SHOW_CREDITS_PACKET, ShowCreditsPacket::class);
 		$this->registerPacket(ProtocolInfo::SPAWN_EXPERIENCE_ORB_PACKET, SpawnExperienceOrbPacket::class);
 		$this->registerPacket(ProtocolInfo::START_GAME_PACKET, StartGamePacket::class);
 		$this->registerPacket(ProtocolInfo::TAKE_ITEM_ENTITY_PACKET, TakeItemEntityPacket::class);
 		$this->registerPacket(ProtocolInfo::TEXT_PACKET, TextPacket::class);
+		$this->registerPacket(ProtocolInfo::TRANSFER_PACKET, TransferPacket::class);
 		$this->registerPacket(ProtocolInfo::UPDATE_BLOCK_PACKET, UpdateBlockPacket::class);
 		$this->registerPacket(ProtocolInfo::USE_ITEM_PACKET, UseItemPacket::class);
 	}

@@ -22,10 +22,14 @@
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
+use pocketmine\item\Tool;
 use pocketmine\level\Level;
 use pocketmine\Player;
 
 class TallGrass extends Flowable{
+	
+	const NORMAL = 1;
+	const FERN = 2;
 
 	protected $id = self::TALL_GRASS;
 
@@ -47,6 +51,14 @@ class TallGrass extends Flowable{
 		return $names[$this->meta & 0x03];
 	}
 
+	public function getBurnChance() : int{
+		return 60;
+	}
+
+	public function getBurnAbility() : int{
+		return 100;
+	}
+
 	public function place(Item $item, Block $block, Block $target, $face, $fx, $fy, $fz, Player $player = null){
 		$down = $this->getSide(0);
 		if($down->getId() === self::GRASS){
@@ -62,7 +74,7 @@ class TallGrass extends Flowable{
 	public function onUpdate($type){
 		if($type === Level::BLOCK_UPDATE_NORMAL){
 			if($this->getSide(0)->isTransparent() === true){ //Replace with common break method
-				$this->getLevel()->setBlock($this, new Air(), false, false, true);
+				$this->getLevel()->setBlock($this, new Air(), false, false);
 
 				return Level::BLOCK_UPDATE_NORMAL;
 			}
@@ -71,7 +83,12 @@ class TallGrass extends Flowable{
 		return false;
 	}
 
-	public function getDrops(Item $item){
+	public function getToolType()
+	{
+		return Tool::TYPE_SHEARS;
+	}
+
+	public function getDrops(Item $item) : array {
 		if(mt_rand(0, 15) === 0){
 			return [
 				[Item::WHEAT_SEEDS, 0, 1]

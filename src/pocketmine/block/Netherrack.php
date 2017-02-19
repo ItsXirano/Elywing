@@ -28,23 +28,21 @@ class Netherrack extends Solid{
 
 	protected $id = self::NETHERRACK;
 
-	public function __construct(){
-
-	}
+	public function __construct(){}
 
 	public function getName(){
 		return "Netherrack";
 	}
 
 	public function getHardness(){
-		return 2;
+		return 0.4;
 	}
 
 	public function getToolType(){
 		return Tool::TYPE_PICKAXE;
 	}
 
-	public function getDrops(Item $item){
+	public function getDrops(Item $item) : array{
 		if($item->isPickaxe() >= Tool::TIER_WOODEN){
 			return [
 				[Item::NETHERRACK, 0, 1],

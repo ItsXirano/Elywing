@@ -36,7 +36,7 @@ class IronBars extends Thin{
 		return "Iron Bars";
 	}
 
-	public function getHardness(){
+	public function getHardness() {
 		return 5;
 	}
 
@@ -44,8 +44,8 @@ class IronBars extends Thin{
 		return Tool::TYPE_PICKAXE;
 	}
 
-	public function getDrops(Item $item){
-		if($item->isPickaxe() >= Tool::TIER_WOODEN){
+	public function getDrops(Item $item) : array {
+		if($item->isPickaxe() >= 1){
 			return [
 				[Item::IRON_BARS, 0, 1],
 			];
